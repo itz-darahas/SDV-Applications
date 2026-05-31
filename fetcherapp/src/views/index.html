@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Posts</title>
+</head>
+<body>
+  <h1>Posts</h1>
+
+  <button id="btn">Load Posts</button>
+
+  <p id="status"></p>
+  <ul id="posts"></ul>
+
+  <script>
+    document.getElementById("btn").addEventListener("click", async () => {
+      const status = document.getElementById("status");
+      const list = document.getElementById("posts");
+
+      try {
+        status.innerText = "Loading...";
+
+        const res = await fetch("/api/posts");
+
+        if (!res.ok) throw new Error("HTTP " + res.status);
+
+        const data = await res.json();
+
+        list.innerHTML = "";
+
+        data.forEach(post => {
+          const li = document.createElement("li");
+          li.textContent = post.title;
+          list.appendChild(li);
+        });
+
+        status.innerText = "Loaded successfully!";
+      } catch (err) {
+        console.error(err);
+        status.innerText = "Failed to load posts";
+      }
+    });
+  </script>
+</body>
+</html>
