@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t ${{ DOCKER_USERNAME }}/fetcherapp:latest
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/fetcherapp:latest
 
       - name: Push Docker image
-        run: docker push ${{ DOCKER_USERNAME }}/fetcherapp:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/fetcherapp:latest
