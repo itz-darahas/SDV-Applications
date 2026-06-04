@@ -22,10 +22,17 @@ jobs:
       # - name: Build Docker image
       #   run: docker build -t ${{ secrets.DOCKER_USERNAME }}/fetcherapp:latest ./fetcherapp/
 
-      - name: Login to ACR
+      # - name: Login to ACR using PAT
+      #   run: |
+      #     echo ${{ secrets.AZ_ACR_PASSWORD }} | docker login ${{ secrets.AZ_ACR_LOGIN_SERVER }} \
+      #       -u ${{ secrets.AZ_ACR_USERNAME }} --password-stdin
+
+      - name: Login to ACR using SP
         run: |
-          echo ${{ secrets.AZ_ACR_PASSWORD }} | docker login ${{ secrets.AZ_ACR_LOGIN_SERVER }} \
-            -u ${{ secrets.AZ_ACR_USERNAME }} --password-stdin
+          echo ${{ secrets.AZ_ACR_CLIENT_SECRET }} | docker login ${{ secrets.AZ_ACR_LOGIN_SERVER }} \
+            -u ${{ secrets.AZ_ACR_CLIENT_ID }} --password-stdin
+
+
 
       - name: Build Docker image
         run: docker build -t ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:latest ./fetcherapp/
