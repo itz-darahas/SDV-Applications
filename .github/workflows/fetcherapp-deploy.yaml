@@ -13,5 +13,5 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Print message
-        run: echo "Hello from GitHub Actions!"
+      - name: Build Docker image
+        run: docker build -t fetcherapp .
