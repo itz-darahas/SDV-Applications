@@ -34,7 +34,11 @@ jobs:
 
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:latest ./fetcherapp/
+        # run: docker build -t ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:latest ./fetcherapp/
 
-      - name: Push Docker image
-        run: docker push ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:latest
+        run: |
+          docker buildx create --use
+          docker buildx build --platform linux/arm64 -t ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:${{ github.sha }} --push ./fetcherapp/
+
+      # - name: Push Docker image
+      #   run: docker push ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:latest
