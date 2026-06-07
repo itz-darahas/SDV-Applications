@@ -1,3 +1,48 @@
+# name: FetcherApp CI/CD
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   build-and-push:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       # - name: Login to DockerHub
+#       #   uses: docker/login-action@v3
+#       #   with:
+#       #     username: ${{ secrets.DOCKER_USERNAME }}
+#       #     password: ${{ secrets.DOCKER_PASSWORD }} 
+
+#       # - name: Build Docker image
+#       #   run: docker build -t ${{ secrets.DOCKER_USERNAME }}/fetcherapp:latest ./fetcherapp/
+
+#       # - name: Login to ACR using PAT
+#       #   run: |
+#       #     echo ${{ secrets.AZ_ACR_PASSWORD }} | docker login ${{ secrets.AZ_ACR_LOGIN_SERVER }} \
+#       #       -u ${{ secrets.AZ_ACR_USERNAME }} --password-stdin
+
+#       - name: Login to ACR using SP
+#         run: |
+#           echo ${{ secrets.AZ_ACR_CLIENT_SECRET }} | docker login ${{ secrets.AZ_ACR_LOGIN_SERVER }} \
+#             -u ${{ secrets.AZ_ACR_CLIENT_ID }} --password-stdin
+
+
+#       - name: Build Docker image
+#         # run: docker build -t ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:latest ./fetcherapp/
+
+#         run: |
+#           docker buildx create --use
+#           docker buildx build --platform linux/arm64,linux/amd64 -t ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:${{ github.sha }} --push ./fetcherapp/
+
+#       # - name: Push Docker image
+#       #   run: docker push ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:latest
+
 name: FetcherApp CI/CD
 
 on:
@@ -6,39 +51,65 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # ------------------------
+      # 1. Checkout code
+      # ------------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # - name: Login to DockerHub
-      #   uses: docker/login-action@v3
-      #   with:
-      #     username: ${{ secrets.DOCKER_USERNAME }}
-      #     password: ${{ secrets.DOCKER_PASSWORD }} 
-
-      # - name: Build Docker image
-      #   run: docker build -t ${{ secrets.DOCKER_USERNAME }}/fetcherapp:latest ./fetcherapp/
-
-      # - name: Login to ACR using PAT
-      #   run: |
-      #     echo ${{ secrets.AZ_ACR_PASSWORD }} | docker login ${{ secrets.AZ_ACR_LOGIN_SERVER }} \
-      #       -u ${{ secrets.AZ_ACR_USERNAME }} --password-stdin
-
-      - name: Login to ACR using SP
+      # ------------------------
+      # 2. Login to ACR
+      # ------------------------
+      - name: Login to ACR
         run: |
           echo ${{ secrets.AZ_ACR_CLIENT_SECRET }} | docker login ${{ secrets.AZ_ACR_LOGIN_SERVER }} \
             -u ${{ secrets.AZ_ACR_CLIENT_ID }} --password-stdin
 
+      # ------------------------
+      # 3. Build & Push Multi-arch Image
+      # ------------------------
+      - name: Build and Push Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./fetcherapp
+          push: true
+          tags: ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:${{ github.sha }}
+          platforms: linux/arm64,linux/amd64
 
-      - name: Build Docker image
-        # run: docker build -t ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:latest ./fetcherapp/
+      # ------------------------
+      # 4. Azure Login (for AKS access)
+      # ------------------------
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZ_ACR_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZ_ACR_TENANT_ID }}
+          subscription-id: ${{ secrets.AZ_SUBSCRIPTION_ID }}
+          client-secret: ${{ secrets.AZ_ACR_CLIENT_SECRET }}
 
+      # ------------------------
+      # 5. Get AKS credentials
+      # ------------------------
+      - name: Get AKS credentials
         run: |
-          docker buildx create --use
-          docker buildx build linux/arm64,linux/amd64 -t ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:${{ github.sha }} --push ./fetcherapp/
+          az aks get-credentials \
+            --resource-group SDV-CICD \
+            --name sdv-aks-cluster \
+            --overwrite-existing
 
-      # - name: Push Docker image
-      #   run: docker push ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:latest
+      # ------------------------
+      # 6. DEPLOY TO AKS (IMPORTANT STEP)
+      # ------------------------
+      - name: Deploy to AKS
+        run: |
+          kubectl apply -f k8s/fetcher-k8s/deployment.yaml
+      # ------------------------
+      # 7. Verify deployment
+      # ------------------------
+      - name: Verify rollout
+        run: |
+          kubectl rollout status k8s/fetcher-k8s/fetcherapp-deployment --timeout=300s
