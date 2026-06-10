@@ -1,3 +1,6 @@
+#-----------------------------------
+# Using NOdePort
+#------------------------------------
 # apiVersion: v1
 # kind: Service
 # metadata:
@@ -11,18 +14,33 @@
 #       targetPort: 3000
 #   type: NodePort
 
+
+#-----------------------------------
+# Using LOAD BALANCER without Ingress
+#------------------------------------
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: fetcherapp-service
+# spec:
+#   selector:
+#     app: fetcherapp
+#   type: LoadBalancer
+#   ports:
+#     - port: 80
+#       targetPort: 3000
+
+#-----------------------------------
+# Using Ingress
+#------------------------------------
 apiVersion: v1
 kind: Service
-
 metadata:
   name: fetcherapp-service
-
 spec:
   selector:
     app: fetcherapp
-
   ports:
-  - port: 80
-    targetPort: 3000
-
-  type: LoadBalancer
+    - port: 80
+      targetPort: 3000
+  type: ClusterIP
