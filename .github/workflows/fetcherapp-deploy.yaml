@@ -114,7 +114,9 @@ jobs:
       # ------------------------
       - name: Deploy to AKS
         run: |
-          kubectl apply -f k8s/fetcher-k8s/deployment.yaml
+          kubectl set image deployment/fetcherapp-deployment \
+            fetcherapp=${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:${{ github.sha }}
+            
       # ------------------------
       # 7. Verify deployment
       # ------------------------
