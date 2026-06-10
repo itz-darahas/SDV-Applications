@@ -42,7 +42,7 @@ jobs:
 
         run: |
           docker buildx create --use
-          docker buildx build --platform linux/arm64,linux/amd64 -t ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:${{ github.sha }} --push ./fetcherapp/
+          docker buildx build --platform linux/arm64 -t ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:latest --push ./fetcherapp/
 
       # - name: Push Docker image
       #   run: docker push ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:latest
@@ -81,8 +81,8 @@ jobs:
 #         with:
 #           context: ./fetcherapp
 #           push: true
-#           tags: ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:${{ github.sha }}
-#           platforms: linux/arm64,linux/amd64
+#           tags: ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:latest
+#           platforms: linux/arm64
 
       # ------------------------
       # 4. Azure Login (for AKS access)
