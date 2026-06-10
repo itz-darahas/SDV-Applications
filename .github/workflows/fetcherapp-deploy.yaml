@@ -10,7 +10,7 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  ci-build:
     runs-on: ubuntu-latest
 
     steps:
@@ -83,6 +83,12 @@ jobs:
 #           push: true
 #           tags: ${{ secrets.AZ_ACR_LOGIN_SERVER }}/fetcherapp:latest
 #           platforms: linux/arm64
+  cd-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       # ------------------------
       # 4. Azure Login (for AKS access)
