@@ -13,27 +13,8 @@ spec:
         app: fetcherapp
     spec:
       containers:
-      - name: fetcherapp
-        image: acrsdvapplications.azurecr.io/fetcherapp:v2
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 3000
-# apiVersion: apps/v1
-# kind: Deployment
-# metadata:
-#   name: nginx-test
-# spec:
-#   replicas: 1
-#   selector:
-#     matchLabels:
-#       app: nginx-test
-#   template:
-#     metadata:
-#       labels:
-#         app: nginx-test
-#     spec:
-#       containers:
-#       - name: nginx
-#         image: nginx:latest
-#         ports:
-#         - containerPort: 80
+        - name: fetcherapp
+          image: sdvapplicationsacr.azurecr.io/fetcherapp:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
